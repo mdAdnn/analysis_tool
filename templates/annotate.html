@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Annotate Images</title>
+    <style>
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        .image-container {
+            position: relative;
+        }
+        .image-container img {
+            display: block;
+        }
+        .image-container canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Annotate Nucleus Positions</h1>
+    <form action="/annotate" method="post">
+        <div class="image-container">
+            <h2>Control Image</h2>
+            <img id="control_image" src="{{ url_for('static', filename='uploaded_images/' + control_image) }}" alt="Control Image">
+            <canvas id="control_canvas"></canvas>
+            <input type="hidden" name="control_positions[]" id="control_positions">
+        </div>
+        <div class="image-container">
+            <h2>Experimental Image</h2>
+            <img id="experimental_image" src="{{ url_for('static', filename='uploaded_images/' + experimental_image) }}" alt="Experimental Image">
+            <canvas id="experimental_canvas"></canvas>
+            <input type="hidden" name="experimental_positions[]" id="experimental_positions">
+        </div>
+        <button type="submit">Submit</button>
+    </form>
+
+    <script>
+        // JavaScript to handle annotation
+        const controlImage = document.getElementById('control_image');
+        const controlCanvas = document.getElementById('control_canvas');
+        const controlPositionsInput = document.getElementById('control_positions');
+        const experimentalImage = document.getElementById('experimental_image');
+        const experimentalCanvas = document.getElementById('experimental_canvas');
+        const experimentalPositionsInput = document.getElementById('experimental_positions');
+
+        function setupCanvas(image, canvas, positionsInput) {
+            const ctx = canvas.getContext('2d');
+            canvas.width = image.width;
+            canvas.height = image.height;
+
+            canvas.addEventListener('click', (event) => {
+                const rect = canvas.getBoundingClientRect();
+                const x = event.clientX - rect.left;
+                const y = event.clientY - rect.top;
+                ctx.fillStyle = 'red';
+                ctx.beginPath();
+                ctx.arc(x, y, 5, 0, 2 * Math.PI);
+                ctx.fill();
+
+                const positions = positionsInput.value ? JSON.parse(positionsInput.value) : [];
+                positions.push([x, y]);
+                positionsInput.value = JSON.stringify(positions);
+            });
+        }
+
+        setupCanvas(controlImage, controlCanvas, controlPositionsInput);
+        setupCanvas(experimentalImage, experimentalCanvas, experimentalPositionsInput);
+    </script>
+</body>
+</html>
